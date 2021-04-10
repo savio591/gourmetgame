@@ -11,6 +11,24 @@ node index.js
 
 And Have fun :)
 
-Thanks for the opportunity, **Radix.**
+# The Road:
 
-*Att*, **Savio Castelo**.
+* Plan with a flowchart the general algorythm.
+    
+* Plan operator and methods for the algorythms.
+    
+* Do the plans
+    
+* Test with logs and Jest
+    
+* 5 - Fix bugs
+  
+
+# Algorythm Flowchart:
+![flowchart](./diagram.png)
+
+
+----
+## Thanks for the opportunity, **Radix.**
+
+## *Att*, **Savio Castelo**.
