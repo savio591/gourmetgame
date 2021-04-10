@@ -8,18 +8,6 @@ const adjectives = [
     {
         adj_id: 0,
         adj: "massa"
-    },
-    {
-        adj_id: 1,
-        adj: "frutas"
-    },
-    {
-        adj_id: 2,
-        adj: "doces"
-    },
-    {
-        adj_id: 3,
-        adj: "salgados"
     }
 ]
 
@@ -30,33 +18,29 @@ const dishes = [
         adj_id: -1
     },
     {
-        id: 1,
+        id: 0,
         dish: "Lazanha",
         adj_id: 0
-    },
-    {
-        id: 2,
-        dish: "Arroz",
-        adj_id: 0
-    },
-    {
-        id: 3,
-        dish: "Maçã",
-        adj_id: 1
-    },
-    {
-        id: 4,
-        dish: "Pudim",
-        adj_id: 2
-    },
-    {
-        id: 5,
-        dish: "Coxinha",
-        adj_id: 3
     }
-
-
 ]
+
+// Print Data for debuggers
+class Print {
+    printTable() {
+        const database = []
+        for (let i = 0; adjectives.length > i; i++) {
+            const findDishes = dishes.filter(dish => (i === dish.adj_id))
+            database.push({
+                adjective: adjectives[i].adj,
+                dishes: findDishes.map(d => d.dish)
+            })
+        }
+        console.table(database)
+    }
+    printObj() {
+        console.log({ adjectives, dishes })
+    }
+}
 
 class Find {
     adj(adjId) {
@@ -74,105 +58,147 @@ class Find {
 
 function addDish(newDish) {
     const { dish, adjective } = newDish
-    const findAdjIndex = adjectives.findIndex(adj => (adj.adj === adjective))
+    let findAdjIndex = adjectives.findIndex(adj => (adj.adj === adjective))
+
     if ((findAdjIndex === -1)) {
+        findAdjIndex = adjectives.length
         adjectives.push({
-            adj_id: adjectives.length + 1,
+            adj_id: findAdjIndex,
             adj: adjective
         })
     }
+
     dishes.push({
-        id: dishes.length + 1,
+        id: dishes.length - 1,
         dish,
         adj_id: findAdjIndex
     })
 }
 
-function optionCode(str) {
-    let optionCode = -1
-
-    if (str.includes("n")) optionCode = 0
-    if (str.includes("s")) optionCode = 1
-    return optionCode
-}
-
-// Press a table in console with the database
-function showDatabase() {
-    const database = []
-    for (i = 0; adjectives.length > i; i++) {
-
-        const findDishes = dishes.filter(dish => (i === dish.adj_id))
-        database.push({
-            adjective: adjectives[i].adj,
-            dishes: findDishes.map(d => d.dish)
-        })
-    }
-    console.table(database)
-}
 
 function Game() {
     const find = new Find()
-    // init the operators
-    let questionType = 0 // initial, adj, dish, pass, new"
-    let option = 0 // no, yes
+    const print = new Print()
+    // init the operators     -1     0      1    2     3     4      5        6
+    let questionType = 0 // void, initial, adj, dish, pass, cake, newDish, newAdj"
     let actualAdj = 0
     let actualDish = 0
-    let waitInput = 0
-    let waitNewDish = 0
+    let waitInput = 0 // wait input by type 0 = nothing, 1 = adj/dish input, 2 = endgame input, 3 = new adj/dish
 
-    if (questionType === 0) {
-        stdout.write("Pense em um prato que gosta\n> ");
-        questionType++
+    let optionCode = (str) => {
+        let code = -1
+        if (str.includes("n")) code = 0 // note that string method is relative
+        if (str.includes("s")) code = 1
+        return code
     }
 
+    let newDish = {
+        dish: "",
+        adjective: ""
+    }
+
+    // first print without need to insert \n
+    stdout.write("Pense em um prato que gosta\n> ");
+    questionType++
+
     // cli.on will create a looop at each '\n'
-    // cli.on criará um loop a cada \n, ou seja, a entrada "enter"
     cli.on('line', line => {
         option = optionCode(line)
-        console.log({
-            questionType, waitInput, option, actualAdj
-        })
 
+        // questions operators
+        questionType += ((
+            questionType === 2 ||
+            questionType === 1) & option === 1 &
+            waitInput === 1) ? 1 : 0
 
-        // operatotrs manager
-        questionType += ((questionType === 2) & option === 1) ? 1 : 0
-        questionType += ((questionType === 1) & option === 1) ? 1 : 0
+        actualAdj += (questionType === 1 & option === 0 & waitInput === 1) ? 1 : 0
+        actualDish += (questionType === 2 & option === 0 & waitInput === 1) ? 1 : 0
 
-        actualAdj += ((questionType === 1) & option === 0) ? 1 : 0
-        actualDish += ((questionType === 2) & option === 0) ? 1 : 0
-
-
-        try {
-            // questions manager
+        // new adj/dish conditions
+        if (waitInput >= 4) {
             switch (questionType) {
-                case (1): // print the adjective mode question
-                    console.log("10")
-                    stdout.write(`o prato que você escolheu é ${find.adj(actualAdj)}?\n> `)
+                case 6:
+                    newDish.adjective = line
+                    questionType = 3
+                    addDish(newDish)
                     break
-                case (2): // print the dish mode question
-                    console.log("20")
-                    stdout.write(`O prato que você pensou é ${find.dish(actualAdj, actualDish)}?\n> `)
-                    break
-                case (3): // print the pass mode
-                    console.log(`Aê carai?`)
-                    showDatabase()
-                    cli.close()
+                case 5:
+                    newDish.dish = line
+                    questionType++
                     break
             }
         }
 
-        // if not find a dish or adjective
-        catch (err) {
-            stdout.write("Desisto\n\n")
-            stdout.write(`O prato que você pensou é ${find.dish(-1, 0)}?\n> `)
-            
-
-
-
-
+        // no more dish/adj condition
+        if (questionType === 4 & waitInput === 3) {
+            switch (option) {
+                case 0:
+                    questionType++
+                    break
+                case 1: questionType = 3
+                    break
+            }
         }
 
+        // endgame conditions
+        if (questionType === 3 & waitInput === 2) {
+            switch (option) {
+                case 0:
+                    questionType = -1
+                    actualDish = 0
+                    actualAdj = 0
+                    waitInput = 0
+                    option = -1
+                    cli.close()
+                    break
+                case 1:
+                    questionType = 0
+                    actualDish = 0
+                    actualAdj = 0
+                    waitInput = 0
+                    option = -1
+                    break
+            }
+        }
 
+        // questions manager
+        try {
+            switch (questionType) {
+                case (0):
+                    stdout.write("Pense em um prato que gosta\n> ")
+                    questionType++
+                    break
+                case (1): // print the adjective mode question
+                    stdout.write(`o prato que você escolheu é ${find.adj(actualAdj)}?\n> `)
+                    waitInput = 1
+                    break
+                case (2): // print the dish mode question
+                    stdout.write(`O prato que você pensou é ${find.dish(actualAdj, actualDish)}?\n> `)
+                    waitInput = 1
+                    break
+                case (3): // print the pass mode
+                    stdout.write(`Acertei!\nQuer jogar denovo?\n> `)
+                    waitInput = 2
+                    break
+                case (4): // print the cake mode
+                    stdout.write(`O prato que você pensou é ${find.dish(-1, 0)}?\n> `)
+                    waitInput = 3
+                    break
+                case (5): // print the new dish mode
+                    stdout.write(`Qual prato você pensou?\n> `)
+                    waitInput++
+                    break
+                case (6): // print the new dish mode
+                    stdout.write(`${newDish.dish} é _____, mas bolo de chocolate não.\n> `)
+                    waitInput++
+                    break
+            }
+        }
+
+        catch (err) {
+            questionType = 4
+            cli.write('\n')
+        }
     })
 }
 
