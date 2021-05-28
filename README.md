@@ -1,5 +1,5 @@
 # Gourmet Game
-Gourmet Game - The Classic job test in NodeJS
+Gourmet Game - The Classic job test in Functional Code/NodeJS
 
 # Start
 
@@ -19,16 +19,13 @@ And Have fun :)
     
 * Do the plans
     
-* Test with logs and Jest
-    
-* 5 - Fix bugs
+* Fix bugs
   
+
 
 # Algorythm Flowchart:
 ![flowchart](./diagram.png)
 
 
 ----
-## Thanks for the opportunity, **Radix.**
-
-## *Att*, **Savio Castelo**.
+## Made with <3 by **Savio Castelo**.
